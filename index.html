@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çark Çevir</title>
+    <style>
+        #wheel {
+            width: 300px;
+            height: 300px;
+            border: 5px solid #333;
+            border-radius: 50%;
+            position: relative;
+            transform: rotate(0deg);
+            transition: transform 4s ease-out;
+        }
+
+        #wheel::before {
+            content: "";
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #result {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="wheel"></div>
+    <div id="result"></div>
+
+    <script>
+        // Çark bölümleri ve isimler
+        const sections = 8; // Çarkın bölüm sayısı
+        const names = [
+            "İsim 1",
+            "İsim 2",
+            "İsim 3",
+            "İsim 4",
+            "İsim 5",
+            "İsim 6",
+            "İsim 7",
+            "İsim 8"
+        ];
+
+        // Çarkı çevirme fonksiyonu
+        function spinWheel() {
+            const wheel = document.getElementById("wheel");
+            const result = document.getElementById("result");
+
+            const degrees = Math.floor(Math.random() * 360);
+            const totalDegrees = 360 * 5 + degrees;
+
+            // Çarkı döndür
+            wheel.style.transform = `rotate(${totalDegrees}deg)`;
+
+            // Sonucu göster
+            setTimeout(() => {
+                const selectedName = selectRandomName();
+                result.innerText = `Çıkan İsim: ${selectedName}`;
+            }, 4000);
+        }
+
+        // Rastgele bir isim seçme fonksiyonu
+        function selectRandomName() {
+            const randomIndex = Math.floor(Math.random() * names.length);
+            return names[randomIndex];
+        }
+
+        // Başlangıçta çarkı döndür
+        spinWheel();
+    </script>
+</body>
+</html>
