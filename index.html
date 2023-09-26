@@ -4,101 +4,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Boyutlandırma</title>
+    <title>UpVideo</title>
     <style>
         body {
             background-color: black;
             color: white;
+            font-family: Arial, sans-serif;
             text-align: center;
             padding: 20px;
-        }
-        #upVideo {
-            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <h1>UpVideo</h1>
-    <p id="upVideo" onclick="selectVideo()">Videolarınızı yüklemek için tıklayın</p>
-
-    <input type="file" accept=".webm" id="videoInput" style="display: none;" onchange="handleVideoSelection()">
-    <div id="videoContainer" style="display: none;">
-        <video controls id="outputVideo" style="max-width: 100%;"></video>
-    </div>
-
-    <div>
+    <p>Dosya seçin ve videonuzu boyutlandırın.</p>
+    <label for="fileInput">Video Seç:</label>
+    <input type="file" id="fileInput" accept=".webm">
+    <br>
+    <div id="options" style="display: none;">
         <label for="durationInput">Süre (saniye):</label>
         <input type="number" id="durationInput" placeholder="Video süresi (saniye)">
-    </div>
-
-    <div>
+        <br>
         <label for="widthInput">Genişlik (piksel):</label>
         <input type="number" id="widthInput" placeholder="Video genişliği (piksel)">
-    </div>
-
-    <div>
+        <br>
         <label for="heightInput">Yükseklik (piksel):</label>
         <input type="number" id="heightInput" placeholder="Video yüksekliği (piksel)">
+        <br>
+        <button onclick="resizeVideo()">Dönüştür ve İndir</button>
     </div>
-
-    <button onclick="resizeVideo()">Videoyu Boyutlandır</button>
+    <video id="videoPlayer" controls style="max-width: 100%; display: none;"></video>
+    <a id="downloadLink" style="display: none;">İndir</a>
 
     <script>
-        let selectedVideo = null;
+        document.getElementById("fileInput").addEventListener("change", function() {
+            const fileInput = document.getElementById("fileInput");
+            const options = document.getElementById("options");
+            const videoPlayer = document.getElementById("videoPlayer");
+            const downloadLink = document.getElementById("downloadLink");
 
-        function selectVideo() {
-            const videoInput = document.getElementById("videoInput");
-            videoInput.click();
-        }
-
-        function handleVideoSelection() {
-            const videoInput = document.getElementById("videoInput");
-            const videoContainer = document.getElementById("videoContainer");
-            const outputVideo = document.getElementById("outputVideo");
-
-            if (videoInput.files.length > 0) {
-                selectedVideo = videoInput.files[0];
-                const videoURL = URL.createObjectURL(selectedVideo);
-                outputVideo.src = videoURL;
-                videoContainer.style.display = "block";
+            if (fileInput.files.length > 0) {
+                const selectedFile = fileInput.files[0];
+                if (selectedFile.type === "video/webm") {
+                    options.style.display = "block";
+                    videoPlayer.src = URL.createObjectURL(selectedFile);
+                    videoPlayer.style.display = "block";
+                    downloadLink.style.display = "none";
+                } else {
+                    alert("Lütfen bir .webm uzantılı video dosyası seçin.");
+                }
             } else {
-                selectedVideo = null;
-                outputVideo.src = "";
-                videoContainer.style.display = "none";
+                options.style.display = "none";
+                videoPlayer.style.display = "none";
+                downloadLink.style.display = "none";
             }
-        }
+        });
 
         function resizeVideo() {
             const durationInput = document.getElementById("durationInput").value;
             const widthInput = document.getElementById("widthInput").value;
             const heightInput = document.getElementById("heightInput").value;
 
-            if (!selectedVideo || !durationInput || !widthInput || !heightInput) {
-                alert("Lütfen tüm alanları doldurun ve bir video seçin.");
+            if (!durationInput || !widthInput || !heightInput) {
+                alert("Lütfen tüm alanları doldurun.");
                 return;
             }
 
-            const video = document.createElement("video");
-            video.preload = "metadata";
-            video.onloadedmetadata = function() {
-                const canvas = document.createElement("canvas");
-                const ctx = canvas.getContext("2d");
-                canvas.width = widthInput;
-                canvas.height = heightInput;
-                ctx.drawImage(video, 0, 0, widthInput, heightInput);
-                canvas.toBlob(function(blob) {
-                    const resizedVideo = URL.createObjectURL(blob);
+            const videoPlayer = document.getElementById("videoPlayer");
+            const downloadLink = document.getElementById("downloadLink");
 
-                    const outputVideo = document.getElementById("outputVideo");
-                    outputVideo.src = resizedVideo;
-                    outputVideo.currentTime = 0;
-                    outputVideo.play();
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = widthInput;
+            canvas.height = heightInput;
+            
+            const durationInSeconds = parseInt(durationInput, 10);
+            
+            ctx.drawImage(videoPlayer, 0, 0, widthInput, heightInput);
+            canvas.toBlob(function(blob) {
+                const resizedVideo = URL.createObjectURL(blob);
 
-                    URL.revokeObjectURL(resizedVideo);
-                }, "video/webm");
-            };
+                downloadLink.href = resizedVideo;
+                downloadLink.style.display = "block";
+                downloadLink.download = "resized_video.webm";
 
-            video.src = URL.createObjectURL(selectedVideo);
+                URL.revokeObjectURL(resizedVideo);
+            }, "video/webm", 1); // 1 saniye boyunca görüntüsü değişmeyecek
         }
     </script>
 </body>
