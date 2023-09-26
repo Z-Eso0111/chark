@@ -1,124 +1,104 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Çark Çevir</title>
+    <title>Video Boyutlandırma</title>
     <style>
-        /* Tema stilleri burada tanımlanır */
         body {
-            background-color: white; /* Varsayılan tema: Beyaz arka plan */
-            transition: background-color 2s ease-in-out;
-        }
-
-        #wheel {
-            width: 300px;
-            height: 300px;
-            border: 5px solid #333;
-            border-radius: 50%;
-            position: relative;
-            transform: rotate(0deg);
-            transition: transform 4s ease-out;
-        }
-
-        #wheel::before {
-            content: "";
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: red;
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        #result {
+            background-color: black;
+            color: white;
             text-align: center;
-            font-size: 24px;
-            margin-top: 20px;
+            padding: 20px;
         }
-
-        /* Tema stil tanımlamaları burada sona erer */
+        #upVideo {
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <div id="theme-selection">
-        <p>Sayfa açıldığında bir tema seçin:</p>
-        <button onclick="setTheme('classic')">Classic Tema</button>
-        <button onclick="setTheme('rgb')">RGB Tema</button>
-        <button onclick="setTheme('custom')">Özel Tema</button>
+    <h1>UpVideo</h1>
+    <p id="upVideo" onclick="selectVideo()">Videolarınızı yüklemek için tıklayın</p>
+
+    <input type="file" accept=".webm" id="videoInput" style="display: none;" onchange="handleVideoSelection()">
+    <div id="videoContainer" style="display: none;">
+        <video controls id="outputVideo" style="max-width: 100%;"></video>
     </div>
-    <div id="wheel"></div>
-    <div id="result"></div>
+
+    <div>
+        <label for="durationInput">Süre (saniye):</label>
+        <input type="number" id="durationInput" placeholder="Video süresi (saniye)">
+    </div>
+
+    <div>
+        <label for="widthInput">Genişlik (piksel):</label>
+        <input type="number" id="widthInput" placeholder="Video genişliği (piksel)">
+    </div>
+
+    <div>
+        <label for="heightInput">Yükseklik (piksel):</label>
+        <input type="number" id="heightInput" placeholder="Video yüksekliği (piksel)">
+    </div>
+
+    <button onclick="resizeVideo()">Videoyu Boyutlandır</button>
 
     <script>
-        // Tema değiştirme fonksiyonu
-        function setTheme(theme) {
-            const themeSelection = document.getElementById("theme-selection");
-            const body = document.body;
+        let selectedVideo = null;
 
-            if (theme === 'classic') {
-                body.style.backgroundColor = 'https://cdn.discordapp.com/attachments/1132673001498869820/1156345495199953038/Baslksz.jpg?ex=6514a229&is=651350a9&hm=468c6b068709937accdddd100795da45a3dda7a0f21ba4a3aa18f1cf92789fb6&';
-            } else if (theme === 'rgb') {
-                body.style.backgroundColor = 'rgb(' +
-                    Math.floor(Math.random() * 256) + ',' +
-                    Math.floor(Math.random() * 256) + ',' +
-                    Math.floor(Math.random() * 256) + ')';
-            } else if (theme === 'custom') {
-                const customBgURL = prompt("Lütfen özel tema için bir resim URL'si girin:");
-                if (customBgURL) {
-                    body.style.backgroundImage = `url(${customBgURL})`;
-                    body.style.backgroundSize = 'cover';
-                    body.style.backgroundRepeat = 'no-repeat';
-                }
+        function selectVideo() {
+            const videoInput = document.getElementById("videoInput");
+            videoInput.click();
+        }
+
+        function handleVideoSelection() {
+            const videoInput = document.getElementById("videoInput");
+            const videoContainer = document.getElementById("videoContainer");
+            const outputVideo = document.getElementById("outputVideo");
+
+            if (videoInput.files.length > 0) {
+                selectedVideo = videoInput.files[0];
+                const videoURL = URL.createObjectURL(selectedVideo);
+                outputVideo.src = videoURL;
+                videoContainer.style.display = "block";
+            } else {
+                selectedVideo = null;
+                outputVideo.src = "";
+                videoContainer.style.display = "none";
+            }
+        }
+
+        function resizeVideo() {
+            const durationInput = document.getElementById("durationInput").value;
+            const widthInput = document.getElementById("widthInput").value;
+            const heightInput = document.getElementById("heightInput").value;
+
+            if (!selectedVideo || !durationInput || !widthInput || !heightInput) {
+                alert("Lütfen tüm alanları doldurun ve bir video seçin.");
+                return;
             }
 
-            // Tema seçme kısmını kapat
-            themeSelection.style.display = 'none';
+            const video = document.createElement("video");
+            video.preload = "metadata";
+            video.onloadedmetadata = function() {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                canvas.width = widthInput;
+                canvas.height = heightInput;
+                ctx.drawImage(video, 0, 0, widthInput, heightInput);
+                canvas.toBlob(function(blob) {
+                    const resizedVideo = URL.createObjectURL(blob);
+
+                    const outputVideo = document.getElementById("outputVideo");
+                    outputVideo.src = resizedVideo;
+                    outputVideo.currentTime = 0;
+                    outputVideo.play();
+
+                    URL.revokeObjectURL(resizedVideo);
+                }, "video/webm");
+            };
+
+            video.src = URL.createObjectURL(selectedVideo);
         }
-
-        // Çark bölümleri ve isimler
-        const sections = 8; // Çarkın bölüm sayısı
-        const names = [
-            "İsim 1",
-            "İsim 2",
-            "İsim 3",
-            "İsim 4",
-            "İsim 5",
-            "İsim 6",
-            "İsim 7",
-            "İsim 8"
-        ];
-
-        // Çarkı çevirme fonksiyonu
-        function spinWheel() {
-            const wheel = document.getElementById("wheel");
-            const result = document.getElementById("result");
-
-            const degrees = Math.floor(Math.random() * 360);
-            const totalDegrees = 360 * 5 + degrees;
-
-            // Çarkı döndür
-            wheel.style.transform = `rotate(${totalDegrees}deg)`;
-
-            // Sonucu göster
-            setTimeout(() => {
-                const selectedName = selectRandomName();
-                result.innerText = `Çıkan İsim: ${selectedName}`;
-            }, 4000);
-        }
-
-        // Rastgele bir isim seçme fonksiyonu
-        function selectRandomName() {
-            const randomIndex = Math.floor(Math.random() * names.length);
-            return names[randomIndex];
-        }
-
-        // Başlangıçta çarkı döndür
-        spinWheel();
     </script>
 </body>
 </html>
-
